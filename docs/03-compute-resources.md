@@ -1,8 +1,8 @@
-# Provisioning Compute Resources
+# Provisioning Resources on Microsoft Azure
 
-Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run. In this lab you will provision the compute resources required for running a secure and highly available Kubernetes cluster across a single [compute zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones).
+Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run. In this lab you will provision the compute resources required for running a secure and highly available Kubernetes cluster across a single [region](https://azure.microsoft.com/regions/).
 
-> Ensure a default compute zone and region have been set as described in the [Prerequisites](01-prerequisites.md#set-a-default-compute-region-and-zone) lab.
+> Ensure a default region have been set as described in the [Prerequisites](01-prerequisites.md#set-a-default-compute-region-and-zone) lab.
 
 ## Networking
 
@@ -12,25 +12,21 @@ The Kubernetes [networking model](https://kubernetes.io/docs/concepts/cluster-ad
 
 ### Virtual Private Cloud Network
 
-In this section a dedicated [Virtual Private Cloud](https://cloud.google.com/compute/docs/networks-and-firewalls#networks) (VPC) network will be setup to host the Kubernetes cluster.
+In this section a dedicated [Virtual Network](https://docs.microsoft.com/en-us/azure/virtual-network/) (VNet) network will be setup to host the Kubernetes cluster.
 
-Create the `kubernetes-the-hard-way` custom VPC network:
-
-```
-gcloud compute networks create kubernetes-the-hard-way --mode custom
-```
-
-A [subnet](https://cloud.google.com/compute/docs/vpc/#vpc_networks_and_subnets) must be provisioned with an IP address range large enough to assign a private IP address to each node in the Kubernetes cluster.
-
-Create the `kubernetes` subnet in the `kubernetes-the-hard-way` VPC network:
+Create the `kubernetes-the-hard-way` VNet network and a subnet named `kubernetes`:
 
 ```
-gcloud compute networks subnets create kubernetes \
-  --network kubernetes-the-hard-way \
-  --range 10.240.0.0/24
+az network vnet create \
+--name kubernetes-the-hard-way \
+--resource-group kubernetes-the-hard-way \
+--location westus2 \
+--address-prefix 10.240.0.0/16 \
+--subnet-name kubernetes \
+--subnet-prefix 10.240.0.0/24
 ```
 
-> The `10.240.0.0/24` IP address range can host up to 254 compute instances.
+> Please note that Azure reserves a handful of IP address on each subnet for it's internal services. Hence, a `10.240.0.0/24` subnet will provide 251 IP address. For more information please refer to the [Azure Virtual Network FAQ](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-faq)
 
 ### Firewall Rules
 
