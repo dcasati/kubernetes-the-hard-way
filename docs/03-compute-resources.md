@@ -30,38 +30,63 @@ az network vnet create \
 
 ### Firewall Rules
 
+Create a Network Security Group to accomodate our rules:
+
+```
+az network nsg create \
+  --name kubernetes-the-hard-way \
+  --resource-group kubernetes-the-hard-way 
+```
+
+<!--  THIS MIGHT NOT BE NEEDED
+
 Create a firewall rule that allows internal communication across all protocols:
 
 ```
-gcloud compute firewall-rules create kubernetes-the-hard-way-allow-internal \
-  --allow tcp,udp,icmp \
-  --network kubernetes-the-hard-way \
-  --source-ranges 10.240.0.0/24,10.200.0.0/16
-```
+az network nsg rule create \
+  --resource-group kubernetes-the-hard-way \
+  --nsg-name kubernetes-the-hard-way \
+  --name allow-internal \
+  --access Allow \
+  --protocol "*" \
+  --direction Inbound \
+  --priority 100 \
+  --source-address-prefix 10.240.0.0/24,10.200.0.0/16 \
+  --source-port-range "*" \
+  --destination-address-prefix "*" \
+  --destination-port-range "*"
+``` -->
 
 Create a firewall rule that allows external SSH, ICMP, and HTTPS:
 
 ```
-gcloud compute firewall-rules create kubernetes-the-hard-way-allow-external \
-  --allow tcp:22,tcp:6443,icmp \
-  --network kubernetes-the-hard-way \
-  --source-ranges 0.0.0.0/0
+az network nsg rule create \
+  --name kubernetes-the-hard-way-allow-external \
+  --nsg-name kubernetes-the-hard-way \
+  --resource-group kubernetes-the-hard-way \
+  --priority 100 \
+  --protocol Tcp \
+  --destination-port-ranges 22 6443 \
+  --destination-address-prefixes VirtualNetwork
 ```
 
-> An [external load balancer](https://cloud.google.com/compute/docs/load-balancing/network/) will be used to expose the Kubernetes API Servers to remote clients.
+> An [Internet facing load balancer](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-internet-overview) will be used to expose the Kubernetes API Servers to remote clients.
 
-List the firewall rules in the `kubernetes-the-hard-way` VPC network:
+List the firewall rules in the `kubernetes-the-hard-way` VNet network:
 
 ```
-gcloud compute firewall-rules list --filter "network: kubernetes-the-hard-way"
+az network nsg rule list \
+  --nsg-name kubernetes-the-hard-way \
+  -g kubernetes-the-hard-way \
+  -o table
 ```
 
 > output
 
 ```
-NAME                                         NETWORK                  DIRECTION  PRIORITY  ALLOW                 DENY
-kubernetes-the-hard-way-allow-external       kubernetes-the-hard-way  INGRESS    1000      tcp:22,tcp:6443,icmp
-kubernetes-the-hard-way-allow-internal       kubernetes-the-hard-way  INGRESS    1000      tcp,udp,icmp
+Access    DestinationAddressPrefix    Direction    Name                                      Priority  Protocol    ProvisioningState    ResourceGroup            SourceAddressPrefix    SourcePortRange
+--------  --------------------------  -----------  --------------------------------------  ----------  ----------  -------------------  -----------------------  ---------------------  -----------------
+Allow     VirtualNetwork              Inbound      kubernetes-the-hard-way-allow-external         100  Tcp         Succeeded            kubernetes-the-hard-way  *                      *
 ```
 
 ### Kubernetes Public IP Address
@@ -69,26 +94,70 @@ kubernetes-the-hard-way-allow-internal       kubernetes-the-hard-way  INGRESS   
 Allocate a static IP address that will be attached to the external load balancer fronting the Kubernetes API Servers:
 
 ```
-gcloud compute addresses create kubernetes-the-hard-way \
-  --region $(gcloud config get-value compute/region)
+az network public-ip create \
+  --name kubernetes-the-hard-way \
+  --resource-group kubernetes-the-hard-way \
+  --location westus2 \
+  --allocation-method Static 
 ```
 
 Verify the `kubernetes-the-hard-way` static IP address was created in your default compute region:
 
 ```
-gcloud compute addresses list --filter="name=('kubernetes-the-hard-way')"
+az network public-ip list --resource-group kubernetes-the-hard-way  -o jsonc
 ```
 
 > output
 
 ```
-NAME                     REGION    ADDRESS        STATUS
-kubernetes-the-hard-way  us-west1  XX.XXX.XXX.XX  RESERVED
+[
+  {
+    "dnsSettings": null,
+    "etag": "W/\"d6b67561-eebe-4064-b071-f1f938059a08\"",
+    "id": "/subscriptions/XYZ/resourceGroups/kubernetes-the-hard-way/providers/Microsoft.Network/publicIPAddresses/kubernetes-the-hard-way",
+    "idleTimeoutInMinutes": 4,
+    "ipAddress": "XXX.XXX.XXX.XXX",
+    "ipConfiguration": null,
+    "location": "westus2",
+    "name": "kubernetes-the-hard-way",
+    "provisioningState": "Succeeded",
+    "publicIpAddressVersion": "IPv4",
+    "publicIpAllocationMethod": "Static",
+    "resourceGroup": "kubernetes-the-hard-way",
+    "resourceGuid": "XYZ",
+    "sku": {
+      "name": "Basic"
+    },
+    "tags": null,
+    "type": "Microsoft.Network/publicIPAddresses",
+    "zones": null
+  }
+]
+
 ```
+
+    
+    --boot-disk-size 200GB \
+    --can-ip-forward \  
+    --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
+
 
 ## Compute Instances
 
 The compute instances in this lab will be provisioned using [Ubuntu Server](https://www.ubuntu.com/server) 16.04, which has good support for the [cri-containerd container runtime](https://github.com/kubernetes-incubator/cri-containerd). Each compute instance will be provisioned with a fixed private IP address to simplify the Kubernetes bootstrapping process.
+
+### Create SSH keys
+
+To login to our VMs we will use SSH keys. The examples here will use bash on Linux.
+
+From a terminal run the following command to generate the key pair:
+
+```
+ssh-keygen -t rsa -b 2048 -f kubernetes-the-hard-way 
+
+```
+
+If you need more assistance please refer to [Detailed walk through to create an SSH key pair and additional certificates for a Linux VM in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/create-ssh-keys-detailed). 
 
 ### Kubernetes Controllers
 
@@ -96,17 +165,19 @@ Create three compute instances which will host the Kubernetes control plane:
 
 ```
 for i in 0 1 2; do
-  gcloud compute instances create controller-${i} \
-    --async \
-    --boot-disk-size 200GB \
-    --can-ip-forward \
-    --image-family ubuntu-1604-lts \
-    --image-project ubuntu-os-cloud \
-    --machine-type n1-standard-1 \
-    --private-network-ip 10.240.0.1${i} \
-    --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
-    --subnet kubernetes \
-    --tags kubernetes-the-hard-way,controller
+  az vm create --name controller-${i} \
+  --no-wait \
+  --resource-group kubernetes-the-hard-way \
+  --image UbuntuLTS \
+  --private-ip-address 10.240.0.1${i} \
+  --size Basic_A1 \
+  --vnet-name kubernetes-the-hard-way \
+  --subnet kubernetes \
+  --nsg kubernetes-the-hard-way \
+  --authentication-type ssh \
+  --ssh-key-value ~/kubernetes-the-hard-way.pub \
+  --public-ip-address "" \
+  --tags lab=kubernetes-the-hard-way type=controller
 done
 ```
 
@@ -120,39 +191,40 @@ Create three compute instances which will host the Kubernetes worker nodes:
 
 ```
 for i in 0 1 2; do
-  gcloud compute instances create worker-${i} \
-    --async \
-    --boot-disk-size 200GB \
-    --can-ip-forward \
-    --image-family ubuntu-1604-lts \
-    --image-project ubuntu-os-cloud \
-    --machine-type n1-standard-1 \
-    --metadata pod-cidr=10.200.${i}.0/24 \
-    --private-network-ip 10.240.0.2${i} \
-    --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
-    --subnet kubernetes \
-    --tags kubernetes-the-hard-way,worker
+  az vm create --name worker-${i} \
+  --no-wait \
+  --resource-group kubernetes-the-hard-way \
+  --image UbuntuLTS \
+  --private-ip-address 10.240.0.2${i} \
+  --size Basic_A1 \
+  --vnet-name kubernetes-the-hard-way \
+  --subnet kubernetes \
+  --nsg kubernetes-the-hard-way \
+  --authentication-type ssh \
+  --ssh-key-value ~/kubernetes-the-hard-way.pub \
+  --public-ip-address "" \
+  --tags lab=kubernetes-the-hard-way type=worker pod-cidr=10.200.${i}.0/24
 done
 ```
-
 ### Verification
 
 List the compute instances in your default compute zone:
 
 ```
-gcloud compute instances list
+az vm list -g kubernetes-the-hard-way --show-details -o table
 ```
 
 > output
 
 ```
-NAME          ZONE        MACHINE_TYPE   PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP     STATUS
-controller-0  us-west1-c  n1-standard-1               10.240.0.10  XX.XXX.XXX.XXX  RUNNING
-controller-1  us-west1-c  n1-standard-1               10.240.0.11  XX.XXX.X.XX     RUNNING
-controller-2  us-west1-c  n1-standard-1               10.240.0.12  XX.XXX.XXX.XX   RUNNING
-worker-0      us-west1-c  n1-standard-1               10.240.0.20  XXX.XXX.XXX.XX  RUNNING
-worker-1      us-west1-c  n1-standard-1               10.240.0.21  XX.XXX.XX.XXX   RUNNING
-worker-2      us-west1-c  n1-standard-1               10.240.0.22  XXX.XXX.XX.XX   RUNNING
-```
+Name          ResourceGroup            PowerState    Location
+------------  -----------------------  ------------  ----------
+controller-0  kubernetes-the-hard-way  VM running    westus2
+controller-1  kubernetes-the-hard-way  VM running    westus2
+controller-2  kubernetes-the-hard-way  VM running    westus2
+worker-0      kubernetes-the-hard-way  VM running    westus2
+worker-1      kubernetes-the-hard-way  VM running    westus2
+worker-2      kubernetes-the-hard-way  VM running    westus2
 
+```
 Next: [Provisioning a CA and Generating TLS Certificates](04-certificate-authority.md)
