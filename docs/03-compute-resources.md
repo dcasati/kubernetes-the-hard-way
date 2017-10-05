@@ -136,12 +136,6 @@ az network public-ip list --resource-group kubernetes-the-hard-way  -o jsonc
 
 ```
 
-    
-    --boot-disk-size 200GB \
-    --can-ip-forward \  
-    --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
-
-
 ## Compute Instances
 
 The compute instances in this lab will be provisioned using [Ubuntu Server](https://www.ubuntu.com/server) 16.04, which has good support for the [cri-containerd container runtime](https://github.com/kubernetes-incubator/cri-containerd). Each compute instance will be provisioned with a fixed private IP address to simplify the Kubernetes bootstrapping process.
