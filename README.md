@@ -1,6 +1,8 @@
-# Kubernetes The Hard Way
+# Kubernetes The Hard Way - The Azure Edition
 
-This tutorial walks you through setting up Kubernetes the hard way. This guide is not for people looking for a fully automated command to bring up a Kubernetes cluster. If that's you then check out [Google Container Engine](https://cloud.google.com/container-engine), or the [Getting Started Guides](http://kubernetes.io/docs/getting-started-guides/).
+This is a fork of the awesome tutorial by Kelsey Hightower *Kubernetes The Hard Way* that can be found [here](https://github.com/kelseyhightower/kubernetes-the-hard-way). This version of the tutorial will make use of Microsoft Azure's as the underlying platform. I wanted to say thank you to Kelsey for his hard work promoting Kubernetes. 
+
+This tutorial walks you through setting up Kubernetes the hard way. This guide is not for people looking for a fully automated command to bring up a Kubernetes cluster. If that's you then check out [Azure Container Services](https://azure.microsoft.com/en-us/services/container-service/), or the [Getting Started Guides](http://kubernetes.io/docs/getting-started-guides/).
 
 Kubernetes The Hard Way is optimized for learning, which means taking the long route to ensure you understand each task required to bootstrap a Kubernetes cluster.
 
@@ -21,7 +23,7 @@ Kubernetes The Hard Way guides you through bootstrapping a highly available Kube
 
 ## Labs
 
-This tutorial assumes you have access to the [Google Cloud Platform](https://cloud.google.com). While GCP is used for basic infrastructure requirements the lessons learned in this tutorial can be applied to other platforms.
+This tutorial assumes you have access to [Microsoft Azure](https://azure.microsoft.com/en-us/). While Azure are used for basic infrastructure requirements the lessons learned in this tutorial can be applied to other platforms.
 
 * [Prerequisites](docs/01-prerequisites.md)
 * [Installing the Client Tools](docs/02-client-tools.md)

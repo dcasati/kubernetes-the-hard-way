@@ -1,47 +1,58 @@
 # Prerequisites
 
-## Google Cloud Platform
+This tutorial covers [Microsoft Azure](https://azure.microsoft.com). Most of the commands around Kubernets or Linux will work as-is on both cloud providers We will make a clear distiction when using examples for a specific cloud provider.
 
-This tutorial leverages the [Google Cloud Platform](https://cloud.google.com/) to streamline provisioning of the compute infrastructure required to bootstrap a Kubernetes cluster from the ground up. [Sign up](https://cloud.google.com/free/) for $300 in free credits.
+## Microsoft Azure
 
-[Estimated cost](https://cloud.google.com/products/calculator/#id=78df6ced-9c50-48f8-a670-bc5003f2ddaa) to run this tutorial: $0.22 per hour ($5.39 per day).
+As a second way to illustrate how to setup a Kubernetes cluster from scratch, we will use [Microsoft Azure](https://azure.microsoft.com/). You can create your Azure account for [free](https://azure.microsoft.com/en-us/free/) with $200 worth in credits. 
 
-> The compute resources required for this tutorial exceed the Google Cloud Platform free tier.
 
-## Google Cloud Platform SDK
+> The compute resources required for this tutorial exceed Azure's free tier.
 
-### Install the Google Cloud SDK
+## Microsoft Azure CLI 2.0
 
-Follow the Google Cloud SDK [documentation](https://cloud.google.com/sdk/) to install and configure the `gcloud` command line utility.
+### Install the Microsoft Azure CLI 2.0
 
-Verify the Google Cloud SDK version is 173.0.0 or higher:
+Follow the Azure CLI 2.0 [documentation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) to install the `az` command line utility. You can install utility in various platforms such as macOS, Windows, Linux (various distros) and as a Docker container.
 
-```
-gcloud version
-```
-
-### Set a Default Compute Region and Zone
-
-This tutorial assumes a default compute region and zone have been configured.
-
-If you are using the `gcloud` command-line tool for the first time `init` is the easiest way to do this:
+The examples here are based on the version 2.0.18 of the utility. You can verify the version of the tool by running:
 
 ```
-gcloud init
+az --version
 ```
 
-Otherwise set a default compute region:
+> Note: If this is your first time using the Azure CLI tool, you can familiarize yourself with it's syntax and command options by running `az interactive` 
+
+### First Things First
+
+Before we can use Azure, your first step, aside from having an account, is to login. Once Azure CLI is installed, open up a terminal and run the following:
 
 ```
-gcloud config set compute/region us-west1
+az login
 ```
 
-Set a default compute zone:
+This will prompt you to sign in using a web browser to https://aka.ms/devicelogin and to enter the displayed code. This single step is needed in order to allow `az` to talk back to Azure.
+
+### Set a Default Location For the Resources
+
+As we stand up the resources needed to support our Kubernetes cluster, Azure will created these  in one of the available locations throughout the world.
+
+To fetch a list of all of the current available locations:
 
 ```
-gcloud config set compute/zone us-west1-c
+az account list-locations
 ```
 
-> Use the `gcloud compute zones list` command to view additional regions and zones.
+With this list, you can set a default location that is, for example, closer to you:
+
+```
+az configure --default location=westus2
+```
+
+Now that we have selected a default location for our resources, let's go ahead and create a resource group. 
+
+```
+az group create --name kubernetes-the-hard-way
+```
 
 Next: [Installing the Client Tools](02-client-tools.md)
