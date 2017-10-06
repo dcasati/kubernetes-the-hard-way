@@ -1,11 +1,6 @@
 # Prerequisites
 
-This tutorial covers [Microsoft Azure](https://azure.microsoft.com). Most of the commands around Kubernets or Linux will work as-is on both cloud providers We will make a clear distiction when using examples for a specific cloud provider.
-
-## Microsoft Azure
-
-As a second way to illustrate how to setup a Kubernetes cluster from scratch, we will use [Microsoft Azure](https://azure.microsoft.com/). You can create your Azure account for [free](https://azure.microsoft.com/en-us/free/) with $200 worth in credits. 
-
+This tutorial covers the deployment and bootstraping of Kubernets on [Microsoft Azure](https://azure.microsoft.com). You can create your Azure account for [free](https://azure.microsoft.com/en-us/free/) with $200 worth in credits. 
 
 > The compute resources required for this tutorial exceed Azure's free tier.
 
