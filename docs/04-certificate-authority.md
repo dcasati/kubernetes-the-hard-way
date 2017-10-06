@@ -2,6 +2,11 @@
 
 In this lab you will provision a [PKI Infrastructure](https://en.wikipedia.org/wiki/Public_key_infrastructure) using CloudFlare's PKI toolkit, [cfssl](https://github.com/cloudflare/cfssl), then use it to bootstrap a Certificate Authority, and generate TLS certificates for the following components: etcd, kube-apiserver, kubelet, and kube-proxy.
 
+<<<<<<< HEAD
+=======
+# On Google Cloud Platform
+
+>>>>>>> 66b972a77ae234d92fff506255a4843f03ac8003
 ## Certificate Authority
 
 In this section you will provision a Certificate Authority that can be used to generate additional TLS certificates.
