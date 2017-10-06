@@ -2,6 +2,24 @@
 
 In this labs you will delete the compute resources created during this tutorial.
 
+## Resource Group
+
+You can delete a Resource Group and all of the resources under it will also be removed. 
+
+> A word of caution here. This command will delete _everything_ we've created so. If you do not wish to do that please skip this step and follow the next sections. 
+
+```
+az group delete --no-wait --name kubernetes-the-hard-way
+```
+
+> output
+
+```
+az group delete --no-wait -y --name kubernetes-the-hard-way
+Are you sure you want to perform this operation? (y/n): y
+```
+> If you do not want to be prompted to confirm the operation you can append the `-y` flag to the previous command.
+
 ## Compute Instances
 
 Delete the controller and worker compute instances:
