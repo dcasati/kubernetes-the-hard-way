@@ -1,6 +1,8 @@
 # Provisioning Resources on Microsoft Azure
 
-Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run. In this lab you will provision the compute resources required for running a secure and highly available Kubernetes cluster across a single [region](https://azure.microsoft.com/regions/).
+Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run. We will create a jumpbox host and we will do most of our work from it. 
+
+In this lab you will provision the compute resources required for running a secure and highly available Kubernetes cluster across a single [region](https://azure.microsoft.com/regions/).
 
 > Ensure a default region have been set as described in the [Prerequisites](01-prerequisites.md#set-a-default-compute-region-and-zone) lab.
 
@@ -104,36 +106,16 @@ az network public-ip create \
 Verify the `kubernetes-the-hard-way` static IP address was created in your default compute region:
 
 ```
-az network public-ip list --resource-group kubernetes-the-hard-way  -o jsonc
+az network public-ip list --resource-group kubernetes-the-hard-way \
+  -o table --query "[].{Name:name, Method:publicIpAllocationMethod, IP:ipAddress}"
 ```
 
 > output
 
 ```
-[
-  {
-    "dnsSettings": null,
-    "etag": "W/\"d6b67561-eebe-4064-b071-f1f938059a08\"",
-    "id": "/subscriptions/XYZ/resourceGroups/kubernetes-the-hard-way/providers/Microsoft.Network/publicIPAddresses/kubernetes-the-hard-way",
-    "idleTimeoutInMinutes": 4,
-    "ipAddress": "XXX.XXX.XXX.XXX",
-    "ipConfiguration": null,
-    "location": "westus2",
-    "name": "kubernetes-the-hard-way",
-    "provisioningState": "Succeeded",
-    "publicIpAddressVersion": "IPv4",
-    "publicIpAllocationMethod": "Static",
-    "resourceGroup": "kubernetes-the-hard-way",
-    "resourceGuid": "XYZ",
-    "sku": {
-      "name": "Basic"
-    },
-    "tags": null,
-    "type": "Microsoft.Network/publicIPAddresses",
-    "zones": null
-  }
-]
-
+Name                     Method    IP
+-----------------------  --------  --------------
+kubernetes-the-hard-way  Static    XXX.XXX.XXX.XXX
 ```
 
 ## Compute Instances
