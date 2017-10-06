@@ -1,6 +1,6 @@
 # Provisioning Resources on Microsoft Azure
 
-Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run. We will create a jumpbox host and we will do most of our work from it. 
+Kubernetes requires a set of machines to host the Kubernetes control plane and the worker nodes where containers are ultimately run.
 
 In this lab you will provision the compute resources required for running a secure and highly available Kubernetes cluster across a single [region](https://azure.microsoft.com/regions/).
 
@@ -12,53 +12,29 @@ The Kubernetes [networking model](https://kubernetes.io/docs/concepts/cluster-ad
 
 > Setting up network policies is out of scope for this tutorial.
 
-### Virtual Private Cloud Network
+### Kubernetes Subnet
 
-In this section a dedicated [Virtual Network](https://docs.microsoft.com/en-us/azure/virtual-network/) (VNet) network will be setup to host the Kubernetes cluster.
-
-Create the `kubernetes-the-hard-way` VNet network and a subnet named `kubernetes`:
+On our previously created VNet named `kubernetes-the-hard-way`, we will create a subnet named `kubernetes`:
 
 ```
-az network vnet create \
---name kubernetes-the-hard-way \
---resource-group kubernetes-the-hard-way \
---location westus2 \
---address-prefix 10.240.0.0/16 \
---subnet-name kubernetes \
---subnet-prefix 10.240.0.0/24
+az network vnet subnet create \
+  --name kubernetes \
+  --address-prefix 10.240.0.0/24 \
+  --vnet-name kubernetes-the-hard-way \
+  --resource-group kubernetes-the-hard-way
 ```
 
 > Please note that Azure reserves a handful of IP address on each subnet for it's internal services. Hence, a `10.240.0.0/24` subnet will provide 251 IP address. For more information please refer to the [Azure Virtual Network FAQ](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-faq)
 
 ### Firewall Rules
 
-Create a Network Security Group to accomodate our rules:
+Create a Network Security Group to accommodate our rules:
 
 ```
 az network nsg create \
   --name kubernetes-the-hard-way \
   --resource-group kubernetes-the-hard-way 
 ```
-
-<!--  THIS MIGHT NOT BE NEEDED
-
-Create a firewall rule that allows internal communication across all protocols:
-
-```
-az network nsg rule create \
-  --resource-group kubernetes-the-hard-way \
-  --nsg-name kubernetes-the-hard-way \
-  --name allow-internal \
-  --access Allow \
-  --protocol "*" \
-  --direction Inbound \
-  --priority 100 \
-  --source-address-prefix 10.240.0.0/24,10.200.0.0/16 \
-  --source-port-range "*" \
-  --destination-address-prefix "*" \
-  --destination-port-range "*"
-``` -->
-
 Create a firewall rule that allows external SSH, ICMP, and HTTPS:
 
 ```
@@ -151,7 +127,7 @@ for i in 0 1 2; do
   --subnet kubernetes \
   --nsg kubernetes-the-hard-way \
   --authentication-type ssh \
-  --ssh-key-value ~/kubernetes-the-hard-way.pub \
+  --ssh-key-value ./kubernetes-the-hard-way.pub \
   --public-ip-address "" \
   --tags lab=kubernetes-the-hard-way type=controller
 done
@@ -177,14 +153,14 @@ for i in 0 1 2; do
   --subnet kubernetes \
   --nsg kubernetes-the-hard-way \
   --authentication-type ssh \
-  --ssh-key-value ~/kubernetes-the-hard-way.pub \
+  --ssh-key-value ./kubernetes-the-hard-way.pub \
   --public-ip-address "" \
   --tags lab=kubernetes-the-hard-way type=worker pod-cidr=10.200.${i}.0/24
 done
 ```
 ### Verification
 
-List the compute instances in your default compute zone:
+List the compute instances in the resource group:
 
 ```
 az vm list -g kubernetes-the-hard-way --show-details -o table
@@ -193,14 +169,16 @@ az vm list -g kubernetes-the-hard-way --show-details -o table
 > output
 
 ```
-Name          ResourceGroup            PowerState    Location
-------------  -----------------------  ------------  ----------
+Name          ResourceGroup            PowerState    Location    PublicIps
+------------  -----------------------  ------------  ----------  -------------
 controller-0  kubernetes-the-hard-way  VM running    westus2
 controller-1  kubernetes-the-hard-way  VM running    westus2
 controller-2  kubernetes-the-hard-way  VM running    westus2
+jumpbox       kubernetes-the-hard-way  VM running    westus2     XX.XXX.XX.XXX
 worker-0      kubernetes-the-hard-way  VM running    westus2
 worker-1      kubernetes-the-hard-way  VM running    westus2
 worker-2      kubernetes-the-hard-way  VM running    westus2
 
 ```
+
 Next: [Provisioning a CA and Generating TLS Certificates](04-certificate-authority.md)
