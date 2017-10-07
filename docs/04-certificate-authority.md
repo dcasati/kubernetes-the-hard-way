@@ -258,21 +258,86 @@ kubernetes-key.pem
 kubernetes.pem
 ```
 
+## Copy the files to the Jumpbox
+
+We will copy these files now to our jumpbox and from there we will distribute them to the proper nodes. Before you start the copy, connect to the jumpbox and create the following directories `workers` and `controllers`:
+
+Get the public IP of our jumpbox:
+
+```
+JUMPBOX=$(az network public-ip list \
+  --resource-group kubernetes-the-hard-way \
+  -o tsv | grep jumpbox | cut -f5)
+```
+
+```
+ssh ${JUMPBOX} -i kubernetes-the-hard-way-jumpbox 'mkdir {workers,controllers}'
+```
+Copy the certificates and private keys for the worker nodes to the jumpbox:
+
+```
+for instance in worker-0 worker-1 worker-2; do
+  scp -i kubernetes-the-hard-way-jumpbox \
+    ca.pem ${instance}-key.pem \
+    ${instance}.pem \
+    ${JUMPBOX}:~/workers/
+done
+```
+Copy the certificates and private keys for the controller nodes to the jumpbox:
+
+```
+scp -i kubernetes-the-hard-way-jumpbox \
+  ca.pem ca-key.pem \
+  kubernetes-key.pem kubernetes.pem \
+  ${JUMPBOX}:~/controllers/
+```
+
+## Copy the Kubernetes SSH private key to the Jumpbox
+
+Copy the private key for the Kubernetes nodes to the jumpbox:
+
+```
+scp -i kubernetes-the-hard-way-jumpbox  kubernetes-the-hard-way ${JUMPBOX}:~/.ssh/
+```
+Create a `config` file under `~/.ssh`. This will facilitate our access to the nodes later.
+
+```
+cat > ~/.ssh/config << EOF
+Host worker-* controller-*
+  IdentityFile ~/.ssh/kubernetes-the-hard-way
+EOF
+```
+
 ## Distribute the Client and Server Certificates
+Connect to the jumpbox:
+
+```
+ssh ${JUMPBOX} -i kubernetes-the-hard-way-jumpbox
+```
+Change directory to the `workers` directory:
+
+```
+cd workers
+```
 
 Copy the appropriate certificates and private keys to each worker instance:
 
 ```
 for instance in worker-0 worker-1 worker-2; do
-  gcloud compute scp ca.pem ${instance}-key.pem ${instance}.pem ${instance}:~/
+  scp ca.pem ${instance}-key.pem ${instance}.pem ${instance}:~/
 done
+```
+Change directory to the `controllers` directory:
+
+```
+cd ~/controllers
 ```
 
 Copy the appropriate certificates and private keys to each controller instance:
 
 ```
 for instance in controller-0 controller-1 controller-2; do
-  gcloud compute scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem ${instance}:~/
+ scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem ${instance}:~/
 done
 ```
 
