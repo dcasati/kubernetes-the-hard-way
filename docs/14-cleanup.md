@@ -15,7 +15,7 @@ az group delete --no-wait --name kubernetes-the-hard-way
 > output
 
 ```
-az group delete --no-wait -y --name kubernetes-the-hard-way
+az group delete --no-wait --name kubernetes-the-hard-way
 Are you sure you want to perform this operation? (y/n): y
 ```
 > If you do not want to be prompted to confirm the operation you can append the `-y` flag to the previous command.
