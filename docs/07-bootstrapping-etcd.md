@@ -43,7 +43,7 @@ sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
 The instance IP address will be used to serve client requests and communicate with etcd cluster peers. Retrieve the IP address for the current virtual machine:
 
 ```
-INTERNAL_IP=$(ip route  get 1  | awk '{print $NF;exit}')
+INTERNAL_IP=$(ip route get 1 | awk '{print $NF;exit}')
 ```
 
 Each etcd member must have a unique name within an etcd cluster. Set the etcd name to match the hostname of the current compute instance:
