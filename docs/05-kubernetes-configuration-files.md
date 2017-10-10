@@ -15,14 +15,21 @@ Each kubeconfig requires a Kubernetes API Server to connect to. To support high 
 Retrieve the `kubernetes-the-hard-way` static IP address:
 
 ```
-KUBERNETES_PUBLIC_ADDRESS=$(gcloud compute addresses describe kubernetes-the-hard-way \
-  --region $(gcloud config get-value compute/region) \
-  --format 'value(address)')
+KUBERNETES_PUBLIC_ADDRESS=$(az network public-ip list \
+  --resource-group kubernetes-the-hard-way \
+  --query "[][tags.type,ipAddress]" \
+  -o tsv | awk '/LoadBalancer/{print $2}')
 ```
 
 ### The kubelet Kubernetes Configuration File
 
 When generating kubeconfig files for Kubelets the client certificate matching the Kubelet's node name must be used. This will ensure Kubelets are properly authorized by the Kubernetes [Node Authorizer](https://kubernetes.io/docs/admin/authorization/node/).
+
+Change the current directory to the `workers` directory:
+
+```
+cd ~/workers
+```
 
 Generate a kubeconfig file for each worker node:
 
@@ -59,6 +66,12 @@ worker-2.kubeconfig
 
 ### The kube-proxy Kubernetes Configuration File
 
+Change the current directory to the `kube-proxy` directory:
+
+```
+cd ~/kube-proxy
+```
+
 Generate a kubeconfig file for the `kube-proxy` service:
 
 ```
@@ -94,7 +107,7 @@ Copy the appropriate `kubelet` and `kube-proxy` kubeconfig files to each worker 
 
 ```
 for instance in worker-0 worker-1 worker-2; do
-  gcloud compute scp ${instance}.kubeconfig kube-proxy.kubeconfig ${instance}:~/
+  scp ${instance}.kubeconfig kube-proxy.kubeconfig ${instance}:~/
 done
 ```
 
