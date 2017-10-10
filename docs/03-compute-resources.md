@@ -76,7 +76,8 @@ az network public-ip create \
   --name kubernetes-the-hard-way \
   --resource-group kubernetes-the-hard-way \
   --location westus2 \
-  --allocation-method Static 
+  --allocation-method Static \
+  --tags lab=kubernetes-the-hard-way type=LoadBalancer
 ```
 
 Verify the `kubernetes-the-hard-way` static IP address was created in your default compute region:
