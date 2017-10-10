@@ -260,7 +260,7 @@ kubernetes.pem
 
 ## Copy the files to the Jumpbox
 
-We will copy these files now to our jumpbox and from there we will distribute them to the proper nodes. Before you start the copy, connect to the jumpbox and create the following directories `workers` and `controllers`:
+We will copy these files now to our jumpbox and from there we will distribute them to the proper nodes. Before you start the copy, connect to the jumpbox and create the following directories `workers`, `controllers` and `kube-proxy`:
 
 Get the public IP of our jumpbox:
 
@@ -271,7 +271,7 @@ JUMPBOX=$(az network public-ip list \
 ```
 
 ```
-ssh ${JUMPBOX} -i kubernetes-the-hard-way-jumpbox 'mkdir {workers,controllers}'
+ssh ${JUMPBOX} -i kubernetes-the-hard-way-jumpbox 'mkdir {workers,controllers,kube-proxy}'
 ```
 Copy the certificates and private keys for the worker nodes to the jumpbox:
 
@@ -290,6 +290,14 @@ scp -i kubernetes-the-hard-way-jumpbox \
   ca.pem ca-key.pem \
   kubernetes-key.pem kubernetes.pem \
   ${JUMPBOX}:~/controllers/
+```
+
+Copy the kube-proxy certificates and keys to the jumpbox:
+
+```
+scp -i kubernetes-the-hard-way-jumpbox \
+  kube-proxy.pem kube-proxy-key.pem \
+    ${JUMPBOX}:~/kube-proxy/
 ```
 
 ## Copy the Kubernetes SSH private key to the Jumpbox
