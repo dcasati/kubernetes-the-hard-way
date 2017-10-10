@@ -212,8 +212,8 @@ Retrieve the `kubernetes-the-hard-way` static IP address:
 ```
 KUBERNETES_PUBLIC_ADDRESS=$(az network public-ip list \
   --resource-group kubernetes-the-hard-way \
-  --query "[][ipAddress]" \
-  -o tsv)
+  --query "[][tags.type,ipAddress]" \
+  -o tsv | awk '/LoadBalancer/{print $2}')
 ```
 
 Create the Kubernetes API Server certificate signing request:
