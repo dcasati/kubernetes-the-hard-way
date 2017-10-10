@@ -296,7 +296,7 @@ Copy the kube-proxy certificates and keys to the jumpbox:
 
 ```
 scp -i kubernetes-the-hard-way-jumpbox \
-  kube-proxy.pem kube-proxy-key.pem \
+  ca.pem kube-proxy.pem kube-proxy-key.pem \
     ${JUMPBOX}:~/kube-proxy/
 ```
 
