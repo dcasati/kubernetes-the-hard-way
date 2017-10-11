@@ -94,6 +94,16 @@ Name                     Method    IP
 -----------------------  --------  --------------
 kubernetes-the-hard-way  Static    XXX.XXX.XXX.XXX
 ```
+## Availability Set
+
+Availability sets provides redundancy for an application by distributing the virtual machines within a given datacenter. The intent here is to avoid an application outage due to things such as hardware failure or even planned upgrades on the underlying hypervisor. For more detailed information please visit [Regions and availability for virtual machines in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/regions-and-availability#availability-sets)
+
+```
+az vm availability-set create \
+  --name kubernetes-the-hard-way \
+  --location westus2 \
+  --resource-group kubernetes-the-hard-way 
+```
 
 ## Compute Instances
 
@@ -120,6 +130,7 @@ Create three compute instances which will host the Kubernetes control plane:
 for i in 0 1 2; do
   az vm create --name controller-${i} \
   --no-wait \
+  --availability-set kubernetes-the-hard-way \
   --resource-group kubernetes-the-hard-way \
   --image UbuntuLTS \
   --private-ip-address 10.240.0.1${i} \
