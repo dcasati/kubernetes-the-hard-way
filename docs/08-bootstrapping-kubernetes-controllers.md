@@ -4,10 +4,10 @@ In this lab you will bootstrap the Kubernetes control plane across three compute
 
 ## Prerequisites
 
-The commands in this lab must be run on each controller instance: `controller-0`, `controller-1`, and `controller-2`. Login to each controller instance using the `gcloud` command. Example:
+The commands in this lab must be run on each controller instance: `controller-0`, `controller-1`, and `controller-2`. Login to each controller instance from the jumpbox. Example:
 
 ```
-gcloud compute ssh controller-0
+ssh controller-0
 ```
 
 ## Provision the Kubernetes Control Plane
@@ -47,8 +47,7 @@ sudo mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem encryption-config.ya
 The instance internal IP address will be used advertise the API Server to members of the cluster. Retrieve the internal IP address for the current compute instance:
 
 ```
-INTERNAL_IP=$(curl -s -H "Metadata-Flavor: Google" \
-  http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+INTERNAL_IP=$(ip route get 1 | awk '{print $NF;exit}')
 ```
 
 Create the `kube-apiserver.service` systemd unit file:
@@ -197,8 +196,10 @@ In this section you will configure RBAC permissions to allow the Kubernetes API 
 
 > This tutorial sets the Kubelet `--authorization-mode` flag to `Webhook`. Webhook mode uses the [SubjectAccessReview](https://kubernetes.io/docs/admin/authorization/#checking-api-access) API to determine authorization.
 
+From the jumpbox `ssh` into the first controller node:
+
 ```
-gcloud compute ssh controller-0
+ssh controller-0
 ```
 
 Create the `system:kube-apiserver-to-kubelet` [ClusterRole](https://kubernetes.io/docs/admin/authorization/rbac/#role-and-clusterrole) with permissions to access the Kubelet API and perform most common tasks associated with managing pods:
@@ -258,7 +259,10 @@ In this section you will provision an external load balancer to front the Kubern
 Create the external load balancer network resources:
 
 ```
-gcloud compute target-pools create kubernetes-target-pool
+az network lb create \
+  --name kubernetes-the-hard-way \
+  --resource-group kubernetes-the-hard-way \
+  --backend-pool-name kubernetes-target-pool 
 ```
 
 ```
