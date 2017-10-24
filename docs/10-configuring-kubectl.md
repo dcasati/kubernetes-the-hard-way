@@ -11,9 +11,10 @@ Each kubeconfig requires a Kubernetes API Server to connect to. To support high 
 Retrieve the `kubernetes-the-hard-way` static IP address:
 
 ```
-KUBERNETES_PUBLIC_ADDRESS=$(gcloud compute addresses describe kubernetes-the-hard-way \
-  --region $(gcloud config get-value compute/region) \
-  --format 'value(address)')
+KUBERNETES_PUBLIC_ADDRESS=$(az network public-ip list \
+  --resource-group kubernetes-the-hard-way \
+  --query "[][tags.type,ipAddress]" \
+  -o tsv | awk '/LoadBalancer/{print $2}')
 ```
 
 Generate a kubeconfig file suitable for authenticating as the `admin` user:
