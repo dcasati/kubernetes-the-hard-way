@@ -66,8 +66,7 @@ sudo mv kubectl kube-proxy kubelet /usr/local/bin/
 Retrieve the Pod CIDR range for the current compute instance:
 
 ```
-POD_CIDR=$(curl -s -H "Metadata-Flavor: Google" \
-  http://metadata.google.internal/computeMetadata/v1/instance/attributes/pod-cidr)
+POD_CIDR=$(curl -s -H "Metadata:true" -N "http://169.254.169.254/metadata/instance/compute/tags?api-version=2017-08-01&format=text"| sed 's/.*pod-cidr\:\(.*\)/\1/')
 ```
 
 Create the `bridge` network configuration file:
