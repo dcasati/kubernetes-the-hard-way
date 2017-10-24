@@ -4,10 +4,10 @@ In this lab you will bootstrap three Kubernetes worker nodes. The following comp
 
 ## Prerequisites
 
-The commands in this lab must be run on each worker instance: `worker-0`, `worker-1`, and `worker-2`. Login to each worker instance using the `gcloud` command. Example:
+The commands in this lab must be run on each worker instance: `worker-0`, `worker-1`, and `worker-2`. Login to each worker instance from the jumpbox host . Example:
 
 ```
-gcloud compute ssh worker-0
+ ssh worker-0
 ```
 
 ## Provisioning a Kubernetes Worker Node
@@ -211,10 +211,10 @@ sudo systemctl start containerd cri-containerd kubelet kube-proxy
 
 ## Verification
 
-Login to one of the controller nodes:
+Login to one of the controller nodes from the jumpbox:
 
 ```
-gcloud compute ssh controller-0
+ssh controller-0
 ```
 
 List the registered Kubernetes nodes:
